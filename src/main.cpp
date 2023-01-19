@@ -156,6 +156,8 @@ void get_validated_input(double result[]) {
                 value = 13;
             } else {
                 cout << "Input " << input << " salah. Ulangi!\n";
+                cin.clear();
+                cin.ignore(INT32_MAX, '\n');
                 break;
             }
 
