@@ -1,9 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
 using std::string;
 using std::vector;
+using std::ofstream;
 using std::snprintf;
 using std::cin;
 using std::cout;
@@ -155,6 +157,27 @@ string format_string(const string &format, const double values[], const char ops
     return strbuffer;
 }
 
+void save_to_file(const vector<string> &output) {
+    string filename;
+
+    cout << "Enter filename: (without .txt)\n";
+    cin >> filename;
+
+    filename = filename + ".txt";
+
+    ofstream file(filename);
+
+    file << "Found " << output.size() << " solutions\n";
+
+    for (auto &i: output) {
+        file << i << "\n";
+    }
+
+    file.close();
+
+    cout << "File saved as " << filename << "\n";
+}
+
 int main() {
     const double target = 24;
     double input[4];
@@ -262,6 +285,14 @@ int main() {
 
         for (auto &i: valid_combination) {
             cout << i << "\n";
+        }
+
+        cout << "Apakah ingin menyimpan solusi? [ya/tidak]\n";
+        string answer;
+        cin >> answer;
+
+        if (answer == "ya") {
+            save_to_file(valid_combination);
         }
     }
 
