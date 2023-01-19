@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <limits>
+#include <random>
 
 using std::string;
 using std::vector;
@@ -28,6 +30,9 @@ int op_in_ops(const char ops[], int ops_size, char op) {
 
 double evaluate_arithmetic(double number1, double number2, char op) {
     if (op == '/') {
+        if (number2 == 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
         return number1 / number2;
     } else if (op == '*') {
         return number1 * number2;
@@ -107,43 +112,53 @@ double evaluate_expression(const double original_values[], int values_size, cons
 }
 
 void get_validated_input(double result[]) {
-    for (int i = 0; i < 4; i++) {
-        double value;
-        string input;
-        cin >> input;
+    bool valid = false;
 
-        if (input == "A") {
-            value = 1;
-        } else if (input == "2") {
-            value = 2;
-        } else if (input == "3") {
-            value = 3;
-        } else if (input == "4") {
-            value = 4;
-        } else if (input == "5") {
-            value = 5;
-        } else if (input == "6") {
-            value = 6;
-        } else if (input == "7") {
-            value = 7;
-        } else if (input == "8") {
-            value = 8;
-        } else if (input == "9") {
-            value = 9;
-        } else if (input == "10") {
-            value = 10;
-        } else if (input == "J") {
-            value = 11;
-        } else if (input == "Q") {
-            value = 12;
-        } else if (input == "K") {
-            value = 13;
-        } else {
-            cerr << "Invalid input\n";
-            exit(1);
+    while (!valid) {
+        cout << "Masukkan kombinasi kartu: \n";
+
+        for (int i = 0; i < 4; i++) {
+            double value;
+            string input;
+            cin >> input;
+
+            if (input == "A") {
+                value = 1;
+            } else if (input == "2") {
+                value = 2;
+            } else if (input == "3") {
+                value = 3;
+            } else if (input == "4") {
+                value = 4;
+            } else if (input == "5") {
+                value = 5;
+            } else if (input == "6") {
+                value = 6;
+            } else if (input == "7") {
+                value = 7;
+            } else if (input == "8") {
+                value = 8;
+            } else if (input == "9") {
+                value = 9;
+            } else if (input == "10") {
+                value = 10;
+            } else if (input == "J") {
+                value = 11;
+            } else if (input == "Q") {
+                value = 12;
+            } else if (input == "K") {
+                value = 13;
+            } else {
+                cout << "Input " << input << " salah. Ulangi!\n";
+                break;
+            }
+
+            result[i] = value;
+
+            if (i == 3) {
+                valid = true;
+            }
         }
-
-        result[i] = value;
     }
 }
 
@@ -179,12 +194,26 @@ void save_to_file(const vector<string> &output) {
 }
 
 int main() {
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distribution(1, 13);
+
     const double target = 24;
     double input[4];
     char ops[] = {'/', '*', '+', '-'};
-    cout << "Masukkan kombinasi kartu: \n";
-    get_validated_input(input);
 
+    cout << "Apakah ingin mengacak input? [ya/tidak]\n";
+    string random;
+    cin >> random;
+
+    if (random == "ya") {
+        for (double &i: input) {
+            i = double(distribution(generator));
+        }
+    } else {
+        get_validated_input(input);
+    }
+
+    // shuffle
     vector<string> valid_combination;
 
     for (char &op1: ops) {
