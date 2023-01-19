@@ -244,7 +244,13 @@ int main() {
     set<string> valid_combination;
     vector<double> initial_vec = {input[0], input[1], input[2], input[3]};
 
-    for (auto &combination: permutate(initial_vec)) {
+    auto permutations = permutate(initial_vec);
+
+    for (const auto &combination: permutations) {
+        for (int i = 0; i < 4; i++) {
+            input[i] = combination[i]; // ini jelek tapi lg butuh cepet :(
+        }
+
         for (char &op1: ops) {
             for (char &op2: ops) {
                 for (char &op3: ops) {
