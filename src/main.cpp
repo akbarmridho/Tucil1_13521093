@@ -2,9 +2,11 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <set>
 #include <limits>
 #include <random>
 
+using std::set;
 using std::string;
 using std::vector;
 using std::ofstream;
@@ -172,7 +174,7 @@ string format_string(const string &format, const double values[], const char ops
     return strbuffer;
 }
 
-void save_to_file(const vector<string> &output) {
+void save_to_file(const set<string> &output) {
     string filename;
 
     cout << "Enter filename: (without .txt)\n";
@@ -193,8 +195,34 @@ void save_to_file(const vector<string> &output) {
     cout << "File saved as " << filename << "\n";
 }
 
+template<typename T>
+void swap(T &x, T &y) {
+    T temp = x;
+    x = y;
+    y = temp;
+}
+
+void permutations(vector<vector<double> > &res, vector<double> nums, int l, int h) {
+    if (l == h) {
+        res.push_back(nums);
+        return;
+    }
+
+    for (int i = l; i <= h; i++) {
+        swap(nums[l], nums[i]);
+        permutations(res, nums, l + 1, h);
+        swap(nums[l], nums[i]);
+    }
+}
+
+vector<vector<double> > permutate(vector<double> &values) {
+    vector<vector<double> > result;
+    permutations(result, values, 0, values.size() - 1);
+    return result;
+}
+
 int main() {
-    std::default_random_engine generator;
+    std::default_random_engine generator{std::random_device{}()};
     std::uniform_int_distribution<int> distribution(1, 13);
 
     const double target = 24;
@@ -213,95 +241,97 @@ int main() {
         get_validated_input(input);
     }
 
-    // shuffle
-    vector<string> valid_combination;
+    set<string> valid_combination;
+    vector<double> initial_vec = {input[0], input[1], input[2], input[3]};
 
-    for (char &op1: ops) {
-        for (char &op2: ops) {
-            for (char &op3: ops) {
-                string expression;
-                double result, num1, num2;
+    for (auto &combination: permutate(initial_vec)) {
+        for (char &op1: ops) {
+            for (char &op2: ops) {
+                for (char &op3: ops) {
+                    string expression;
+                    double result, num1, num2;
 
-                // case A ops B ops C ops D
-                char ops_combination[] = {op1, op2, op3};
-                result = evaluate_expression(input, 4, ops_combination, 3);
+                    // case A ops B ops C ops D
+                    char ops_combination[] = {op1, op2, op3};
+                    result = evaluate_expression(input, 4, ops_combination, 3);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("%d %c %d %c %d %c %d", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("%d %c %d %c %d %c %d", input, ops_combination));
+                    }
 
-                // case (A ops B) ops (C ops D)
-                num1 = evaluate_arithmetic(input[0], input[1], op1);
-                num2 = evaluate_arithmetic(input[2], input[3], op3);
-                result = evaluate_arithmetic(num1, num2, op2);
+                    // case (A ops B) ops (C ops D)
+                    num1 = evaluate_arithmetic(input[0], input[1], op1);
+                    num2 = evaluate_arithmetic(input[2], input[3], op3);
+                    result = evaluate_arithmetic(num1, num2, op2);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("(%d %c %d) %c (%d %c %d)", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("(%d %c %d) %c (%d %c %d)", input, ops_combination));
+                    }
 
-                // case (A ops B) ops C ops D
-                num1 = evaluate_arithmetic(input[0], input[1], op1);
-                double new_input1[] = {num1, input[2], input[3]};
-                char new_ops1[] = {op2, op3};
-                result = evaluate_expression(new_input1, 3, new_ops1, 2);
+                    // case (A ops B) ops C ops D
+                    num1 = evaluate_arithmetic(input[0], input[1], op1);
+                    double new_input1[] = {num1, input[2], input[3]};
+                    char new_ops1[] = {op2, op3};
+                    result = evaluate_expression(new_input1, 3, new_ops1, 2);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("(%d %c %d) %c %d %c %d", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("(%d %c %d) %c %d %c %d", input, ops_combination));
+                    }
 
-                // case A ops B ops (C ops D)
-                num2 = evaluate_arithmetic(input[2], input[3], op3);
-                double new_input2[] = {input[0], input[1], num2};
-                char new_ops2[] = {op1, op2};
-                result = evaluate_expression(new_input2, 3, new_ops2, 2);
+                    // case A ops B ops (C ops D)
+                    num2 = evaluate_arithmetic(input[2], input[3], op3);
+                    double new_input2[] = {input[0], input[1], num2};
+                    char new_ops2[] = {op1, op2};
+                    result = evaluate_expression(new_input2, 3, new_ops2, 2);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("%d %c %d %c (%d %c %d)", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("%d %c %d %c (%d %c %d)", input, ops_combination));
+                    }
 
-                // case A ops (B ops C) ops D
-                num1 = evaluate_arithmetic(input[1], input[2], op2);
-                double new_input3[] = {input[0], num1, input[3]};
-                char new_ops3[] = {op1, op3};
-                result = evaluate_expression(new_input3, 3, new_ops3, 2);
+                    // case A ops (B ops C) ops D
+                    num1 = evaluate_arithmetic(input[1], input[2], op2);
+                    double new_input3[] = {input[0], num1, input[3]};
+                    char new_ops3[] = {op1, op3};
+                    result = evaluate_expression(new_input3, 3, new_ops3, 2);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("%d %c (%d %c %d) %c %d", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("%d %c (%d %c %d) %c %d", input, ops_combination));
+                    }
 
-                // case ((A ops B) ops C) ops D
-                num1 = evaluate_arithmetic(input[0], input[1], op1);
-                num2 = evaluate_arithmetic(num1, input[2], op2);
-                result = evaluate_arithmetic(num2, input[3], op3);
+                    // case ((A ops B) ops C) ops D
+                    num1 = evaluate_arithmetic(input[0], input[1], op1);
+                    num2 = evaluate_arithmetic(num1, input[2], op2);
+                    result = evaluate_arithmetic(num2, input[3], op3);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("((%d %c %d) %c %d) %c %d", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("((%d %c %d) %c %d) %c %d", input, ops_combination));
+                    }
 
-                // case (A ops (B ops C)) ops D
-                num2 = evaluate_arithmetic(input[1], input[2], op2);
-                num1 = evaluate_arithmetic(input[0], num2, op1);
-                result = evaluate_arithmetic(num1, input[3], op3);
+                    // case (A ops (B ops C)) ops D
+                    num2 = evaluate_arithmetic(input[1], input[2], op2);
+                    num1 = evaluate_arithmetic(input[0], num2, op1);
+                    result = evaluate_arithmetic(num1, input[3], op3);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("(%d %c (%d %c %d)) %c %d", input, ops_combination));
-                }
+                    if (result == target) {
+                        valid_combination.insert(format_string("(%d %c (%d %c %d)) %c %d", input, ops_combination));
+                    }
 
-                // case A ops ((B ops C) ops D)
-                num1 = evaluate_arithmetic(input[1], input[2], op2);
-                num2 = evaluate_arithmetic(num1, input[3], op3);
-                result = evaluate_arithmetic(input[0], num2, op1);
+                    // case A ops ((B ops C) ops D)
+                    num1 = evaluate_arithmetic(input[1], input[2], op2);
+                    num2 = evaluate_arithmetic(num1, input[3], op3);
+                    result = evaluate_arithmetic(input[0], num2, op1);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("%d %c ((%d %c %d) %c %d)", input, ops_combination));
-                }
-                // case A ops (B ops (C ops D))
-                num2 = evaluate_arithmetic(input[2], input[3], op3);
-                num1 = evaluate_arithmetic(input[1], num2, op2);
-                result = evaluate_arithmetic(input[0], num1, op1);
+                    if (result == target) {
+                        valid_combination.insert(format_string("%d %c ((%d %c %d) %c %d)", input, ops_combination));
+                    }
+                    // case A ops (B ops (C ops D))
+                    num2 = evaluate_arithmetic(input[2], input[3], op3);
+                    num1 = evaluate_arithmetic(input[1], num2, op2);
+                    result = evaluate_arithmetic(input[0], num1, op1);
 
-                if (result == target) {
-                    valid_combination.push_back(format_string("%d %c (%d %c (%d %c %d))", input, ops_combination));
+                    if (result == target) {
+                        valid_combination.insert(format_string("%d %c (%d %c (%d %c %d))", input, ops_combination));
+                    }
                 }
             }
         }
