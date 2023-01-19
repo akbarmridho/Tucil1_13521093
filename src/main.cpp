@@ -5,6 +5,7 @@
 #include <set>
 #include <limits>
 #include <random>
+#include <chrono>
 
 using std::set;
 using std::string;
@@ -14,6 +15,9 @@ using std::snprintf;
 using std::cin;
 using std::cout;
 using std::cerr;
+using std::chrono::high_resolution_clock;
+using std::chrono::microseconds;
+using std::chrono::duration_cast;
 
 int op_in_ops(const char ops[], int ops_size, char op) {
     int found_idx = -1;
@@ -244,6 +248,7 @@ int main() {
     set<string> valid_combination;
     vector<double> initial_vec = {input[0], input[1], input[2], input[3]};
 
+    auto start = high_resolution_clock::now();
     auto permutations = permutate(initial_vec);
 
     for (const auto &combination: permutations) {
@@ -343,14 +348,20 @@ int main() {
         }
     }
 
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start);
+
     if (valid_combination.empty()) {
         cout << "No solution found\n";
+        cout << "Execution done in " << duration.count() << " microseconds\n";
     } else {
         cout << "Found " << valid_combination.size() << " solutions\n";
 
         for (auto &i: valid_combination) {
             cout << i << "\n";
         }
+
+        cout << "Execution done in " << duration.count() << " microseconds\n";
 
         cout << "Apakah ingin menyimpan solusi? [ya/tidak]\n";
         string answer;
